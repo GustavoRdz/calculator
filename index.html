@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://fonts.googleapis.com/css?family=Wallpoet" rel="stylesheet">
+    <title>Calculator by Spheroid Games</title>
+</head>
+
+<body>
+    <div class="calculator">
+
+        <div class="mark">&#x1f4f7; &nbsp; iCalc &nbsp; &#x26ab;</div>
+        <input type="text" class="calculator-screen" value="0" disabled />
+
+        <div class="calculator-keys">
+
+            <button type="button" value="7">7</button>
+            <button type="button" value="8">8</button>
+            <button type="button" value="9">9</button>
+            <button type="button" class="delete" value="del">DEL</button>
+            <button type="button" class="all-clear" value="all-clear">AC</button>
+
+
+            <button type="button" value="4">4</button>
+            <button type="button" value="5">5</button>
+            <button type="button" value="6">6</button>
+            <button type="button" class="operator" value="-">-</button>
+            <button type="button" class="operator" value="/">&divide;</button>
+
+            <button type="button" value="1">1</button>
+            <button type="button" value="2">2</button>
+            <button type="button" value="3">3</button>
+            <button type="button" class="operator" value="*">&times;</button>
+
+
+
+            <button type="button" value="0">0</button>
+            <button type="button" class="decimal" value=".">.</button>
+            <button type="button" class="answer" value="ans">ANS</button>
+
+            <button type="button" class="operator" value="+">+</button>
+
+            <button type="button" class="equal-sign" value="=">=</button>
+
+        </div>
+        <div class="fruit">&#x1F951;</div>
+    </div>
+    <footer><a href="https://github.com/GustavoRdz/calculator">By GustavoRdz</a></footer>
+</body>
+
+</html>
+
+<script>
+    // get the buttons in an array
+    const keys = document.querySelectorAll("button");
+
+    // listen for each pixel to be over it
+    keys.forEach(key => key.addEventListener("click", addKey));
+    // get the display div
+    let display = document.querySelector(".calculator-screen");
+
+    let operation = ''; // string to hold the operations
+    let equalFlag = false; // to know if the '=' was press
+    let ansFlag = false; // to know if the 'ans' was press
+    let actualKey = ''; // the last key pressed
+    let ans; // the last result obtained
+
+    // here enters the logic of the calculator
+    function addKey(e) {
+
+        lastKey = operation.charAt(operation.length - 1); // the last key pressed
+
+        // Checks if the '=' was pressed before the last key and if the last key was diffrent of
+        // '=' e.i. a number then cleans the operation buffer. This is to not add numbers at the
+        // end of a result number. It mantains the result just in case we continue operating with
+        // the actual result
+        if (e.path[0].value !== '=' && equalFlag) {
+            equalFlag = false
+            if ('0123456789.'.indexOf(e.path[0].value) !== -1) {
+                operation = ''
+            }
+        }
+        // As in the above if, but in this case for the 'ans' key. IN case of a number it cleans the buffer
+        // to start a new operation. It mantains the number in case of a continuation of operations
+        if (ansFlag) {
+            ansFlag = false
+            if ('0123456789.'.indexOf(e.path[0].value) !== -1) {
+                operation = ''
+            }
+        }
+
+        // selects what to do in every button pressed
+        switch (e.path[0].value) {
+            case '.':
+                // this if doesn't permit to add two dots consecutively
+                if (lastKey !== '.') {
+                    // if the las two keys wasn`t dots  now checks that only one dot in the number
+                    // this calculator allows multiple operations at once
+                    let abc = operation
+                        // here we separate by operators resulting in an array on the number involved in the entire operation
+                    let abcd = abc.split(/[\/,\-,+,*]+/);
+                    // Checks if the last number already has a dot
+                    if (abcd[abcd.length - 1].indexOf('.') === -1) {
+                        // if the last number doesn`t has a dot then add one at the end of the string
+                        operation += e.path[0].value
+                        display.value = operation;
+                    }
+                }
+                break;
+            case 'del':
+                // delete the last character of the buffer 
+                let aux = operation.split('')
+                let aux2 = aux.pop()
+                let aux3 = aux.join('');
+                operation = aux3
+                if (operation === '') {
+                    display.value = '0'
+                } else {
+                    display.value = operation;
+                }
+                break;
+            case 'all-clear':
+                // clears the buffer
+                operation = ''
+                display.value = '0';
+                break;
+            case '/':
+                // add the division operator only in case the key before the actual was not an operator
+                if (lastKey !== '' && lastKey !== '/' && lastKey !== '+' && lastKey !== '*' && lastKey !== '-') {
+                    operation += e.path[0].value
+                    display.value = operation;
+                }
+                break;
+            case '*':
+                // add the multiplication operator only in case the key before the actual was not an operator
+                if (lastKey !== '/' && lastKey !== '+' && lastKey !== '*' && lastKey !== '-') {
+                    operation += e.path[0].value
+                    display.value = operation;
+                }
+                break;
+            case '+':
+                // add the division addition only in case the key before the actual was not an operator
+                if (lastKey !== '/' && lastKey !== '+' && lastKey !== '*' && lastKey !== '-') {
+                    operation += e.path[0].value
+                    display.value = operation;
+                }
+                break;
+            case '-':
+                // add the substraction operator or minus sign 
+                if (lastKey !== '-') {
+                    operation += e.path[0].value
+                    display.value = operation;
+                }
+                break;
+            case 'ans':
+                // display the last result (answer) obtained 
+                if (ans) {
+                    operation = ans.toString();
+                    console.log('ans: ' + ans + 'oper: ' + operation);
+                    display.value = operation;
+                }
+                ansFlag = true;
+                break;
+            case '=':
+                // operate to obtain the result
+                operation = evaluate().toString();
+                display.value = operation;
+                ans = operation;
+                equalFlag = true;
+                break;
+            default:
+                // add numbers and point to the buffer of operations
+                operation += e.path[0].value
+                display.value = operation;
+                break;
+
+        }
+        // If you have a extremely large chain of operations it reduces the font to
+        // display it completely in the screen
+        if (operation.length > 8) {
+            display.style.fontSize = '4rem';
+            if (operation.length > 10) {
+                display.style.fontSize = '3rem';
+                if (operation.length > 14) {
+                    display.style.fontSize = '2rem';
+                    if (operation.length > 20) {
+                        display.style.fontSize = '1rem';
+                    } else {
+                        display.style.fontSize = '2rem';
+                    }
+                } else {
+                    display.style.fontSize = '3rem';
+                }
+            } else {
+                display.style.fontSize = '4rem';
+            }
+        } else {
+            display.style.fontSize = '5rem';
+        }
+    }
+
+    // the function to evaluate the operation chain
+    function evaluate() {
+        try {
+            a = eval(operation);
+            return a
+        } catch (e) {
+            if (e instanceof SyntaxError) {
+                throw 'bad syntax'
+            }
+        }
+    }
+</script>
+
+<style>
+    html {
+        font-size: 62.5%;
+        box-sizing: border-box;
+    }
+    
+    *,
+    *::before,
+    *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: inherit;
+    }
+    
+    .calculator {
+        border: 1px solid #ccc;
+        border-radius: 30px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        height: 600px;
+    }
+    
+    .mark {
+        width: 60%;
+        margin: 20px auto;
+        text-align: center;
+        font-size: 2.5rem;
+        border: 1px solid #aaa;
+        border-radius: 20px;
+        background-color: #4e9ed4;
+    }
+    
+    .calculator-screen {
+        width: 100%;
+        margin-top: 50px;
+        font-size: 5rem;
+        height: 80px;
+        border: 1px solid #ccc;
+        background-color: #252525;
+        color: #fff;
+        text-align: right;
+        padding-right: 20px;
+        padding-left: 10px;
+    }
+    
+    button {
+        height: 60px;
+        background-color: #fff;
+        border-radius: 3px;
+        border: 1px solid #c4c4c4;
+        background-color: transparent;
+        font-size: 2rem;
+        color: #333;
+    }
+    
+    button:hover {
+        background-color: #eaeaea;
+    }
+    
+    .operator {
+        color: #337cac;
+    }
+    
+    .all-clear {
+        background-color: #f0595f;
+        border-color: #b0353a;
+        color: #fff;
+    }
+    
+    .all-clear:hover {
+        background-color: #f17377;
+    }
+    
+    .equal-sign {
+        background-color: #2e86c0;
+        border-color: #337cac;
+        color: #fff;
+        height: 100%;
+        grid-area: 3 / 5 / 5 / 5;
+    }
+    
+    .equal-sign:hover {
+        background-color: #4e9ed4;
+    }
+    
+    .calculator-keys {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    }
+    
+    .fruit {
+        font-size: 5em;
+        width: 30%;
+        margin: 50px auto;
+        padding-top: 10px;
+        padding-left: 20px;
+        border: 1px solid #aaa;
+        border-radius: 30px;
+    }
+    
+    .fruit:hover {
+        background-color: #02721e;
+    }
+    
+    footer {
+        position: absolute;
+        width: 30%;
+        bottom: 0;
+        right: 35%;
+        left: 35%;
+        text-align: center;
+        padding: 1rem;
+        background-color: #efefef;
+    }
+</style>
